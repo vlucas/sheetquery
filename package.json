@@ -24,6 +24,7 @@
   ],
   "author": "Vance Lucas <vance@vancelucas.com>",
   "license": "BSD-3-Clause",
+  "homepage": "https://github.com/vlucas/sheetquery",
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "jest": "^26.6.3",
