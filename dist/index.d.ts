@@ -1,7 +1,7 @@
 /**
  * Run new sheet query
  */
-export declare function sheetQuery(activeSpreadsheet: any): SheetQuery;
+export declare function sheetQuery(activeSpreadsheet: any): SheetQueryBuilder;
 export declare type RowObject = {
     [key: string]: any;
     __meta: {
@@ -12,9 +12,9 @@ export declare type RowObject = {
 export declare type WhereFn = (row: RowObject) => boolean;
 export declare type UpdateFn = (row: RowObject) => RowObject | undefined;
 /**
- * SheetQuery class - Kind of an ORM for Google Sheets
+ * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
-export declare class SheetQuery {
+export declare class SheetQueryBuilder {
     activeSpreadsheet: any;
     columnNames: string[];
     sheetName: string | undefined;

@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SheetQuery = exports.sheetQuery = void 0;
+exports.SheetQueryBuilder = exports.sheetQuery = void 0;
 /**
  * Run new sheet query
  */
 function sheetQuery(activeSpreadsheet) {
-    return new SheetQuery(activeSpreadsheet);
+    return new SheetQueryBuilder(activeSpreadsheet);
 }
 exports.sheetQuery = sheetQuery;
 /**
- * SheetQuery class - Kind of an ORM for Google Sheets
+ * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
-class SheetQuery {
+class SheetQueryBuilder {
     constructor(activeSpreadsheet) {
         this.columnNames = [];
         this._sheetHeadings = null;
@@ -89,7 +89,7 @@ class SheetQuery {
     // Return rows with matching criteria
     getRows() {
         const sheetValues = this.getValues();
-        return sheetValues.filter(this.whereFn);
+        return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
     }
     getHeadings() {
         return this._sheetHeadings;
@@ -101,5 +101,5 @@ class SheetQuery {
         return this;
     }
 }
-exports.SheetQuery = SheetQuery;
+exports.SheetQueryBuilder = SheetQueryBuilder;
 //# sourceMappingURL=index.js.map
