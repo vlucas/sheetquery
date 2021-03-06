@@ -2,7 +2,7 @@
  * Run new sheet query
  */
 export function sheetQuery(activeSpreadsheet: any) {
-  return new SheetQuery(activeSpreadsheet);
+  return new SheetQueryBuilder(activeSpreadsheet);
 }
 
 export type RowObject = { [key: string]: any, __meta: { row: number, cols: number } };
@@ -13,9 +13,9 @@ export type UpdateFn = (row: RowObject) => RowObject | undefined;
 declare var SpreadsheetApp: any;
 
 /**
- * SheetQuery class - Kind of an ORM for Google Sheets
+ * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
-export class SheetQuery {
+export class SheetQueryBuilder {
   activeSpreadsheet: any;
   columnNames: string[] = [];
   sheetName: string | undefined;
@@ -125,7 +125,7 @@ export class SheetQuery {
   getRows(): RowObject[] {
     const sheetValues = this.getValues();
 
-    return sheetValues.filter(this.whereFn);
+    return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
   }
 
   getHeadings(): string[] | null {
