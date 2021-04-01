@@ -1,7 +1,12 @@
+import type { Spreadsheet, Sheet } from 'gasmask/src/SpreadsheetApp';
+
 /**
  * Run new sheet query
+ *
+ * @param {Spreadsheet} activeSpreadsheet Specific spreadsheet to use, or will use SpreadsheetApp.getActiveSpreadsheet() if undefined\
+ * @return {SheetQuery}
  */
-export function sheetQuery(activeSpreadsheet: any) {
+export function sheetQuery(activeSpreadsheet?: any) {
   return new SheetQueryBuilder(activeSpreadsheet);
 }
 
@@ -25,7 +30,7 @@ export class SheetQueryBuilder {
   _sheetValues: any;
   _sheetHeadings: string[] | null = null;
 
-  constructor(activeSpreadsheet: any) {
+  constructor(activeSpreadsheet?: any) {
     this.activeSpreadsheet = activeSpreadsheet || SpreadsheetApp.getActiveSpreadsheet();
   }
 
