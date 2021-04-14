@@ -29,7 +29,7 @@ export class SheetQueryBuilder {
 
   _sheet: any;
   _sheetValues: any;
-  _sheetHeadings: string[] | null = null;
+  _sheetHeadings: string[] = [];
 
   constructor(activeSpreadsheet?: any) {
     this.activeSpreadsheet = activeSpreadsheet || SpreadsheetApp.getActiveSpreadsheet();
@@ -133,8 +133,8 @@ export class SheetQueryBuilder {
     return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
   }
 
-  getHeadings(): string[] | null {
-    if (!this._sheetHeadings) {
+  getHeadings(): string[] {
+    if (!this._sheetHeadings || !this._sheetHeadings.length) {
       const sheet = this.getSheet();
       const numCols = sheet.getLastColumn();
 
@@ -153,17 +153,17 @@ export class SheetQueryBuilder {
     const headings = this.getHeadings();
 
     newRows.forEach(row => {
+      const rowValues = headings.map(heading => {
+        return row[heading] ? row[heading] : '';
+      });
 
+      sheet.appendRow(rowValues);
     });
-
-    console.log({ headings });
-
-    // appendRow()
   }
 
   clearCache() {
     this._sheetValues = null;
-    this._sheetHeadings = null;
+    this._sheetHeadings = [];
 
     SpreadsheetApp.flush();
 

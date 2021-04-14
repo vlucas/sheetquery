@@ -62,11 +62,11 @@ describe('SheetQuery', () => {
       const newRows = [
         {
           Amount: -554.23,
-          Name: 'BigBox, inc.'
+          Name: 'BigBox, inc. __INSERT_TEST__'
         },
         {
           Amount: -29.74,
-          Name: 'Fast-n-greasy Food, Inc.'
+          Name: 'Fast-n-greasy Food, Inc. __INSERT_TEST__'
         },
       ];
 
@@ -78,7 +78,12 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows).toContain(newRows[0]);
+      const testRows = rows.filter(row => row.Name.includes('__INSERT_TEST__'));
+
+      expect(testRows[0].Name).toEqual(newRows[0].Name);
+      expect(testRows[0].Date).toEqual('');
+      expect(testRows[1].Name).toEqual(newRows[1].Name);
+      expect(testRows[1].Date).toEqual('');
     });
   });
 });
