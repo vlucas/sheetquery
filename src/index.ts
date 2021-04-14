@@ -4,7 +4,7 @@ import type { Spreadsheet, Sheet } from 'gasmask/src/SpreadsheetApp';
  * Run new sheet query
  *
  * @param {Spreadsheet} activeSpreadsheet Specific spreadsheet to use, or will use SpreadsheetApp.getActiveSpreadsheet() if undefined\
- * @return {SheetQuery}
+ * @return {SheetQueryBuilder}
  */
 export function sheetQuery(activeSpreadsheet?: any) {
   return new SheetQueryBuilder(activeSpreadsheet);
@@ -41,19 +41,35 @@ export class SheetQueryBuilder {
     return this;
   }
 
-  // Array of sheet names or single string sheet
+  /**
+   * Name of spreadsheet to perform operations on
+   *
+   * @param {string} sheetName
+   * @return {SheetQueryBuilder}
+   */
   from(sheetName: string) {
     this.sheetName = sheetName;
 
     return this;
   }
 
+  /**
+   * Apply a filtering function on rows in a spreadsheet before performing an operation on them
+   *
+   * @param {Function} fn
+   * @return {SheetQueryBuilder}
+   */
   where(fn: WhereFn) {
     this.whereFn = fn;
 
     return this;
   }
 
+  /**
+   * Delete matched rows from spreadsheet
+   *
+   * @return {SheetQueryBuilder}
+   */
   deleteRows() {
     const rows = this.getRows();
     let i = 0;
@@ -69,6 +85,12 @@ export class SheetQueryBuilder {
     return this;
   }
 
+  /**
+   * Update matched rows in spreadsheet with provided function
+   *
+   * @param {UpdateFn} updateFn
+   * @return {SheetQueryBuilder}
+   */
   updateRows(updateFn: UpdateFn) {
     const rows = this.getRows();
 
@@ -92,6 +114,11 @@ export class SheetQueryBuilder {
     return this;
   }
 
+  /**
+   * Get Sheet object that is referenced by the current query from() method
+   *
+   * @return {Sheet}
+   */
   getSheet() {
     if (!this._sheet) {
       this._sheet = this.activeSpreadsheet.getSheetByName(this.sheetName);
@@ -100,6 +127,9 @@ export class SheetQueryBuilder {
     return this._sheet;
   }
 
+  /**
+   * Get values in sheet from current query + where condition
+   */
   getValues() {
     if (!this._sheetValues) {
       const sheet = this.getSheet();
@@ -126,13 +156,22 @@ export class SheetQueryBuilder {
     return this._sheetValues;
   }
 
-  // Return rows with matching criteria
+  /**
+   * Return matching rows from sheet query
+   *
+   * @return {RowObject[]}
+   */
   getRows(): RowObject[] {
     const sheetValues = this.getValues();
 
     return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
   }
 
+  /**
+   * Get array of headings in current sheet from()
+   *
+   * @return {string[]}
+   */
   getHeadings(): string[] {
     if (!this._sheetHeadings || !this._sheetHeadings.length) {
       const sheet = this.getSheet();
@@ -147,6 +186,9 @@ export class SheetQueryBuilder {
   /**
    * Insert new rows into the spreadsheet
    * Arrays of objects like { Heading: Value }
+   *
+   * @param {DictObject[]} newRows - Array of row objects to insert
+   * @return {SheetQueryBuilder}
    */
   insertRows(newRows: DictObject[]) {
     const sheet = this.getSheet();
@@ -159,8 +201,15 @@ export class SheetQueryBuilder {
 
       sheet.appendRow(rowValues);
     });
+
+    return this;
   }
 
+  /**
+   * Clear cached values, headings, and flush all operations to sheet
+   *
+   * @return {SheetQueryBuilder}
+   */
   clearCache() {
     this._sheetValues = null;
     this._sheetHeadings = [];
