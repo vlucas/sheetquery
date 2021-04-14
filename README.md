@@ -5,10 +5,17 @@ Query builder/ORM for easily manipulating spreadsheets with Google Apps Script f
 This library was created for [BudgetSheet](https://www.budgetsheet.net) and I thought it might be useful for others as
 well.
 
-## Installation for Apps Scripts
+## Install as a Google Apps Script Library
 
-Create a new file named *SheetQuery.gs* in your Google Apps Script project. Copy the contents of *dist/index.js* into
-that file.
+SheetQuery is available as a [Google Apps Script Library](https://developers.google.com/apps-script/guides/libraries).  
+Script ID: `1pbpOJxDDHVeVr6WQmR5TZKSqTsW4qwdIlcVKIM6UKYvswkivwHpPnHaO`
+
+This is probably the easiest way to use SheetQuery and ensure you are always using the latest version.
+
+## Manual Install Into Your Own Google Apps Script
+
+If you don't want to use a Library file and need the script to be local within your own project, Create a new file named
+`SheetQuery.gs` in your Google Apps Script project. Copy the contents of `dist/index.js` into that file.
 
 ## Installation for Built Projects via NPM
 
@@ -68,9 +75,32 @@ sheetQuery()
   .deleteRows();
 ```
 
-SheetQuery will keep track of row indicies, ranges, etc. even as they change while deleting rows so you don't have to.
+Note: Be careful with this one, and always make sure to use it with a `where` filter to limit the number of rows that
+will be deleted!
 
-## API
+### Insert Rows
 
-Full API coming soon...
+Rows can be inserted with SheetQuery by column heading name. No more keeping track of array index positions!
+
+```javascript
+sheetQuery()
+  .from('Transactions')
+  .insertRows([
+    {
+      Amount: -554.23,
+      Name: 'BigBox, inc.'
+    },
+    {
+      Amount: -29.74,
+      Name: 'Fast-n-greasy Food Spot'
+    },
+  ]);
+```
+
+This can be a great way to insert rows into specific column headings without worrying about whether or not a user has
+edited the spreadsheet to add their own columns, etc. that would otherwise cause inserting new rows to be painful.
+
+SheetQuery will lookup the column headings, match them with the object keys provided, and insert a new row with an array
+of values mapped to the correct index positions of the spreadsheet headings. Any heading/column values not provided will
+be left blank.
 
