@@ -56,5 +56,30 @@ describe('SheetQuery', () => {
       expect(rows.every(row => row.Category === 'Shops')).toBeTruthy();
     });
   });
+
+  describe('insertRows', () => {
+    it('Should insert rows in the correct places matching column headings', () => {
+      const newRows = [
+        {
+          Amount: -554.23,
+          Name: 'BigBox, inc.'
+        },
+        {
+          Amount: -29.74,
+          Name: 'Fast-n-greasy Food, Inc.'
+        },
+      ];
+
+      // Insert rows
+      sheetQuery(ss)
+        .from(SHEET_NAME)
+        .insertRows(newRows);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      expect(rows).toContain(newRows[0]);
+    });
+  });
 });
 
