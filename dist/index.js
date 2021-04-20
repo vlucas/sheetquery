@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SheetQueryBuilder = exports.sheetQuery = void 0;
 /**
  * Run new sheet query
  *
@@ -10,7 +7,7 @@ exports.SheetQueryBuilder = exports.sheetQuery = void 0;
 function sheetQuery(activeSpreadsheet) {
     return new SheetQueryBuilder(activeSpreadsheet);
 }
-exports.sheetQuery = sheetQuery;
+
 /**
  * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
@@ -171,5 +168,3 @@ class SheetQueryBuilder {
         return this;
     }
 }
-exports.SheetQueryBuilder = SheetQueryBuilder;
-//# sourceMappingURL=index.js.map
