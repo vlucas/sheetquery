@@ -43,11 +43,20 @@ Data is queried based on the spreadsheet name and column headings:
 ```javascript
 const query = sheetQuery()
   .from('Transactions')
-  .where(row => row.Category === 'Shops');
+  .where((row) => row.Category === 'Shops');
 
 // query.getRows() => [{ Amount: 95, Category: 'Shops', Business: 'Walmart'}]
 ```
 
+If your headings are on a different row than the first row, specify it as the second argument to `from`:
+
+```javascript
+const query = sheetQuery()
+  .from('Transactions', 2) // For headings on row 2
+  .where((row) => row.Category === 'Shops');
+
+// query.getRows() => [{ Amount: 95, Category: 'Shops', Business: 'Walmart'}]
+```
 
 ### Update Rows
 
@@ -56,8 +65,10 @@ Query for the rows you want to update, and then update them:
 ```javascript
 sheetQuery()
   .from('Transactions')
-  .where(row => row.Business.toLowerCase().includes('starbucks'))
-  .updateRows(row => { row.Category = 'Coffee Shops' });
+  .where((row) => row.Business.toLowerCase().includes('starbucks'))
+  .updateRows((row) => {
+    row.Category = 'Coffee Shops';
+  });
 ```
 
 The `updateRows` method can either return nothing, or can return a row object with updated properties that will be saved
@@ -71,7 +82,7 @@ Query for the rows you want to delete, and then delete them:
 ```javascript
 sheetQuery()
   .from('Transactions')
-  .where(row => row.Category === 'DELETEME')
+  .where((row) => row.Category === 'DELETEME')
   .deleteRows();
 ```
 
@@ -88,11 +99,11 @@ sheetQuery()
   .insertRows([
     {
       Amount: -554.23,
-      Name: 'BigBox, inc.'
+      Name: 'BigBox, inc.',
     },
     {
       Amount: -29.74,
-      Name: 'Fast-n-greasy Food Spot'
+      Name: 'Fast-n-greasy Food Spot',
     },
   ]);
 ```
@@ -103,4 +114,3 @@ edited the spreadsheet to add their own columns, etc. that would otherwise cause
 SheetQuery will lookup the column headings, match them with the object keys provided, and insert a new row with an array
 of values mapped to the correct index positions of the spreadsheet headings. Any heading/column values not provided will
 be left blank.
-
