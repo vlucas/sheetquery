@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SheetQueryBuilder = exports.sheetQuery = void 0;
 /**
  * Run new sheet query
+ *
+ * @param {Spreadsheet} activeSpreadsheet Specific spreadsheet to use, or will use SpreadsheetApp.getActiveSpreadsheet() if undefined\
+ * @return {SheetQuery}
  */
 function sheetQuery(activeSpreadsheet) {
     return new SheetQueryBuilder(activeSpreadsheet);
@@ -14,7 +17,7 @@ exports.sheetQuery = sheetQuery;
 class SheetQueryBuilder {
     constructor(activeSpreadsheet) {
         this.columnNames = [];
-        this._sheetHeadings = null;
+        this._sheetHeadings = [];
         this.activeSpreadsheet = activeSpreadsheet || SpreadsheetApp.getActiveSpreadsheet();
     }
     select(columnNames) {
@@ -73,12 +76,12 @@ class SheetQueryBuilder {
             const rowValues = [];
             const sheetValues = sheet.getSheetValues(2, 1, sheet.getLastRow(), numCols);
             const numRows = sheetValues.length;
-            this._sheetHeadings = sheet.getSheetValues(1, 1, 1, numCols)[0];
+            const headings = this.getHeadings();
             for (let r = 0; r < numRows; r++) {
                 const obj = { __meta: { row: r + 2, cols: numCols } }; // 2 = 0-based and heading row
                 for (let c = 0; c < numCols; c++) {
                     // @ts-expect-error: Headings are set already above, so possibility of an error here is nil
-                    obj[this._sheetHeadings[c]] = sheetValues[r][c]; // @ts-ignore
+                    obj[headings[c]] = sheetValues[r][c]; // @ts-ignore
                 }
                 rowValues.push(obj);
             }
@@ -92,11 +95,30 @@ class SheetQueryBuilder {
         return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
     }
     getHeadings() {
+        if (!this._sheetHeadings || !this._sheetHeadings.length) {
+            const sheet = this.getSheet();
+            const numCols = sheet.getLastColumn();
+            this._sheetHeadings = sheet.getSheetValues(1, 1, 1, numCols)[0];
+        }
         return this._sheetHeadings;
+    }
+    /**
+     * Insert new rows into the spreadsheet
+     * Arrays of objects like { Heading: Value }
+     */
+    insertRows(newRows) {
+        const sheet = this.getSheet();
+        const headings = this.getHeadings();
+        newRows.forEach(row => {
+            const rowValues = headings.map(heading => {
+                return row[heading] ? row[heading] : '';
+            });
+            sheet.appendRow(rowValues);
+        });
     }
     clearCache() {
         this._sheetValues = null;
-        this._sheetHeadings = null;
+        this._sheetHeadings = [];
         SpreadsheetApp.flush();
         return this;
     }

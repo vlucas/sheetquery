@@ -11,7 +11,10 @@ export function sheetQuery(activeSpreadsheet?: any) {
 }
 
 export type DictObject = { [key: string]: any };
-export type RowObject = { [key: string]: any, __meta: { row: number, cols: number } };
+export type RowObject = {
+  [key: string]: any;
+  __meta: { row: number; cols: number };
+};
 export type WhereFn = (row: RowObject) => boolean;
 export type UpdateFn = (row: RowObject) => RowObject | undefined;
 
@@ -25,6 +28,7 @@ export class SheetQueryBuilder {
   activeSpreadsheet: any;
   columnNames: string[] = [];
   sheetName: string | undefined;
+  headingRow: number = 1;
   whereFn: WhereFn | undefined;
 
   _sheet: any;
@@ -42,8 +46,9 @@ export class SheetQueryBuilder {
   }
 
   // Array of sheet names or single string sheet
-  from(sheetName: string) {
+  from(sheetName: string, headingRow: number = 1) {
     this.sheetName = sheetName;
+    this.headingRow = headingRow;
 
     return this;
   }
@@ -102,22 +107,24 @@ export class SheetQueryBuilder {
 
   getValues() {
     if (!this._sheetValues) {
+      const zh = this.headingRow - 1;
       const sheet = this.getSheet();
-      const numCols = sheet.getLastColumn();
       const rowValues = [];
-      const sheetValues = sheet.getSheetValues(2, 1, sheet.getLastRow(), numCols);
+      const allValues = sheet.getDataRange().getValues();
+      const sheetValues = allValues.slice(1 + zh);
+      const numCols = sheetValues[0].length;
       const numRows = sheetValues.length;
-      const headings = this.getHeadings();
+      const headings = (this._sheetHeadings = allValues[zh]);
 
-      for(let r = 0; r < numRows; r++) {
+      for (let r = 0; r < numRows; r++) {
         const obj = { __meta: { row: r + 2, cols: numCols } }; // 2 = 0-based and heading row
 
-        for(let c = 0; c < numCols; c++) {
+        for (let c = 0; c < numCols; c++) {
           // @ts-expect-error: Headings are set already above, so possibility of an error here is nil
           obj[headings[c]] = sheetValues[r][c]; // @ts-ignore
         }
 
-        rowValues.push(obj)
+        rowValues.push(obj);
       }
 
       this._sheetValues = rowValues;
@@ -135,10 +142,11 @@ export class SheetQueryBuilder {
 
   getHeadings(): string[] {
     if (!this._sheetHeadings || !this._sheetHeadings.length) {
+      const zh = this.headingRow - 1;
       const sheet = this.getSheet();
       const numCols = sheet.getLastColumn();
 
-      this._sheetHeadings = sheet.getSheetValues(1, 1, 1, numCols)[0];
+      this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh];
     }
 
     return this._sheetHeadings;
@@ -152,8 +160,8 @@ export class SheetQueryBuilder {
     const sheet = this.getSheet();
     const headings = this.getHeadings();
 
-    newRows.forEach(row => {
-      const rowValues = headings.map(heading => {
+    newRows.forEach((row) => {
+      const rowValues = headings.map((heading) => {
         return row[heading] ? row[heading] : '';
       });
 
@@ -170,4 +178,3 @@ export class SheetQueryBuilder {
     return this;
   }
 }
-

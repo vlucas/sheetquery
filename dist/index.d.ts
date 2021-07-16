@@ -1,7 +1,13 @@
 /**
  * Run new sheet query
+ *
+ * @param {Spreadsheet} activeSpreadsheet Specific spreadsheet to use, or will use SpreadsheetApp.getActiveSpreadsheet() if undefined\
+ * @return {SheetQuery}
  */
-export declare function sheetQuery(activeSpreadsheet: any): SheetQueryBuilder;
+export declare function sheetQuery(activeSpreadsheet?: any): SheetQueryBuilder;
+export declare type DictObject = {
+    [key: string]: any;
+};
 export declare type RowObject = {
     [key: string]: any;
     __meta: {
@@ -21,8 +27,8 @@ export declare class SheetQueryBuilder {
     whereFn: WhereFn | undefined;
     _sheet: any;
     _sheetValues: any;
-    _sheetHeadings: string[] | null;
-    constructor(activeSpreadsheet: any);
+    _sheetHeadings: string[];
+    constructor(activeSpreadsheet?: any);
     select(columnNames: string | string[]): this;
     from(sheetName: string): this;
     where(fn: WhereFn): this;
@@ -31,6 +37,11 @@ export declare class SheetQueryBuilder {
     getSheet(): any;
     getValues(): any;
     getRows(): RowObject[];
-    getHeadings(): string[] | null;
+    getHeadings(): string[];
+    /**
+     * Insert new rows into the spreadsheet
+     * Arrays of objects like { Heading: Value }
+     */
+    insertRows(newRows: DictObject[]): void;
     clearCache(): this;
 }
