@@ -46,7 +46,7 @@ describe('SheetQuery', () => {
         Category: 'Shops',
         Date: '2021-01-02',
         Name: 'Shopmart',
-        __meta: { cols: 4, row: 3 },
+        __meta: { cols: 4, row: 4 },
       });
     });
   });
