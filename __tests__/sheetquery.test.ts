@@ -1,4 +1,5 @@
 import { sheetQuery } from '../src/index';
+import type { DictObject } from '../src/index';
 import { SpreadsheetApp } from 'gasmask';
 import { Spreadsheet, Sheet } from 'gasmask/dist/SpreadsheetApp';
 
@@ -137,11 +138,13 @@ describe('SheetQuery', () => {
 
       const newRows = [
         {
+          Date: '2021-01-02',
           Amount: -554.23,
           Name: 'BigBox, inc. __INSERT_TEST__',
           XtraCol: 'whatever',
         },
         {
+          Date: '2021-01-02',
           Amount: -29.74,
           Name: 'Fast-n-greasy Food, Inc. __INSERT_TEST__',
           XtraCol: 'nope',
@@ -158,6 +161,47 @@ describe('SheetQuery', () => {
 
       expect(Object.keys(testRows[0])).not.toContain('XtraCol');
       expect(Object.keys(testRows[1])).not.toContain('XtraCol');
+    });
+
+    it('should not error with empty spreadsheet or headings', () => {
+      setupSpreadsheet([]);
+
+      const newRows = [
+        {
+          Date: '2021-01-02',
+          Amount: -554.23,
+          Name: 'BigBox, inc. __INSERT_TEST__',
+          XtraCol: 'whatever',
+        },
+        {
+          Date: '2021-01-02',
+          Amount: -29.74,
+          Name: 'Fast-n-greasy Food, Inc. __INSERT_TEST__',
+          XtraCol: 'nope',
+        },
+      ];
+
+      // Insert rows
+      sheetQuery(ss).from(SHEET_NAME).insertRows(newRows);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      expect(rows.length).toEqual(1);
+    });
+
+    it('should not error with empty rows', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const newRows: DictObject[] = [];
+
+      // Insert rows
+      sheetQuery(ss).from(SHEET_NAME).insertRows(newRows);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      expect(rows.length).toEqual(defaultSheetData.length - 1);
     });
   });
 });

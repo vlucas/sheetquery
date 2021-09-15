@@ -146,7 +146,7 @@ export class SheetQueryBuilder {
       const sheetValues = allValues.slice(1 + zh);
       const numCols = sheetValues[0].length;
       const numRows = sheetValues.length;
-      const headings = (this._sheetHeadings = allValues[zh]);
+      const headings = (this._sheetHeadings = allValues[zh] || []);
 
       for (let r = 0; r < numRows; r++) {
         const obj = { __meta: { row: r + (this.headingRow + 1), cols: numCols } };
@@ -190,7 +190,7 @@ export class SheetQueryBuilder {
       this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh];
     }
 
-    return this._sheetHeadings;
+    return this._sheetHeadings || [];
   }
 
   /**
@@ -206,7 +206,7 @@ export class SheetQueryBuilder {
 
     newRows.forEach((row) => {
       const rowValues = headings.map((heading) => {
-        return row[heading] ? row[heading] : '';
+        return heading && row[heading] ? row[heading] : '';
       });
 
       sheet.appendRow(rowValues);
