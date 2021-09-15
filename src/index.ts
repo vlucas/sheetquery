@@ -205,6 +205,10 @@ export class SheetQueryBuilder {
     const headings = this.getHeadings();
 
     newRows.forEach((row) => {
+      if (!row) {
+        return;
+      }
+
       const rowValues = headings.map((heading) => {
         return heading && row[heading] ? row[heading] : '';
       });

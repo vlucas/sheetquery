@@ -190,10 +190,25 @@ describe('SheetQuery', () => {
       expect(rows.length).toEqual(1);
     });
 
-    it('should not error with empty rows', () => {
+    it('should not error with no rows', () => {
       setupSpreadsheet(defaultSheetData);
 
       const newRows: DictObject[] = [];
+
+      // Insert rows
+      sheetQuery(ss).from(SHEET_NAME).insertRows(newRows);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      expect(rows.length).toEqual(defaultSheetData.length - 1);
+    });
+
+    it('should not error with rows with no data in them', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      // @ts-ignore - Obvious type error, but with runtime data... who knows?
+      const newRows: DictObject[] = [null];
 
       // Insert rows
       sheetQuery(ss).from(SHEET_NAME).insertRows(newRows);
