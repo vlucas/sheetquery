@@ -158,7 +158,7 @@ class SheetQueryBuilder {
         return;
       }
       const rowValues = headings.map((heading) => {
-        return heading && row[heading] ? row[heading] : '';
+        return (heading && row[heading]) || (heading && row[heading] === false) ? row[heading] : '';
       });
       sheet.appendRow(rowValues);
     });
