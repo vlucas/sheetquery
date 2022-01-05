@@ -220,6 +220,51 @@ export class SheetQueryBuilder {
   }
 
   /**
+  * Get cells in sheet from current query + where condition and from specific header
+  * @param {string} key name of the column
+  * @param {Array<string>} [keys] optionnal names of columns use to select more columns than one
+  * @returns {cells[]} all the colum cells from the query's rows
+  */
+  getCellsByColumns(key: string, ...keys: Array<string>) {
+    let rows = this.getRows();
+    let indexColumn = 1;
+    const arrayCells: Array<any> = [];
+    for (const elem of this._sheetHeadings) {
+      if (elem == key) break;
+      indexColumn++;
+    }
+    rows.forEach((row) => {
+      arrayCells.push(this._sheet.getRange(row.__meta.row, indexColumn));
+    });
+    //If we got more thant one param
+    keys.forEach((key) => {
+      let indexColumn = 1;
+      for (const elem of this._sheetHeadings) {
+        if (elem == key) break;
+        indexColumn++;
+      }
+      rows.forEach((row) => {
+        arrayCells.push(this._sheet.getRange(row.__meta.row, indexColumn));
+      });
+    });
+    return arrayCells;
+  }
+
+  /**
+   * get all cells from a query + where condition
+   * @returns 
+   */
+  getCells() {
+    const rows = this.getRows();
+    const cellArray: Array<any> = [];
+    rows.forEach((row) => {
+      cellArray.push(this._sheet.getRange(row.__meta.row, 1, 1, row.__meta.cols));
+    })
+
+    return cellArray;
+  }
+
+  /**
    * Clear cached values, headings, and flush all operations to sheet
    *
    * @return {SheetQueryBuilder}

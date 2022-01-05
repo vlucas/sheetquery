@@ -91,6 +91,14 @@ export declare class SheetQueryBuilder {
      */
     insertRows(newRows: DictObject[]): SheetQueryBuilder;
     /**
+    * Get all the colum's cells from colum's name and the query's rows
+    * @param {string} key name of the column
+    * @param {Array<string>} [keys] optionnal names of columns use to select more columns than one
+    * @returns {cells[]} all the colum cells from the query's rows
+    */
+    getCellsByColumns(key: string, ...keys: Array<string>): any[];
+    getCells(): any[];
+    /**
      * Clear cached values, headings, and flush all operations to sheet
      *
      * @return {SheetQueryBuilder}
