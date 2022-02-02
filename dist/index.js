@@ -102,12 +102,14 @@ class SheetQueryBuilder {
     if (!this._sheetValues) {
       const zh = this.headingRow - 1;
       const sheet = this.getSheet();
+      if (!sheet) {
+        return [];
+      }
       const rowValues = [];
-      const allValues = sheet.getDataRange().getValues();
-      const sheetValues = allValues.slice(1 + zh);
+      const sheetValues = sheet.getDataRange().getValues();
       const numCols = sheetValues[0].length;
       const numRows = sheetValues.length;
-      const headings = (this._sheetHeadings = allValues[zh] || []);
+      const headings = (this._sheetHeadings = sheetValues[zh] || []);
       for (let r = 0; r < numRows; r++) {
         const obj = { __meta: { row: r + (this.headingRow + 1), cols: numCols } };
         for (let c = 0; c < numCols; c++) {
@@ -176,6 +178,4 @@ class SheetQueryBuilder {
     return this;
   }
 }
-
-//# sourceMappingURL=index.js.map
 
