@@ -41,13 +41,13 @@ describe('SheetQuery', () => {
       const rows = query.getRows();
 
       expect(Object.keys(rows[0])).toEqual(['__meta', 'Date', 'Amount', 'Name', 'Category']);
-      expect(rows.length).toBe(5);
+      expect(rows.length).toBe(customSheetData.length);
       expect(rows).toContainEqual({
         Amount: 72.48,
         Category: 'Shops',
         Date: '2021-01-02',
         Name: 'Shopmart',
-        __meta: { cols: 4, row: 4 },
+        __meta: { cols: 4, row: 6 },
       });
     });
   });
@@ -81,13 +81,13 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows.length).toBe(5);
+      expect(rows.length).toBe(defaultSheetData.length);
       expect(rows).toContainEqual({
         Amount: 72.48,
         Category: 'Shops',
         Date: '2021-01-02',
         Name: 'Shopmart',
-        __meta: { cols: 4, row: 3 },
+        __meta: { cols: 4, row: 4 },
       });
     });
 
@@ -187,7 +187,7 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows.length).toEqual(1);
+      expect(rows.length).toEqual(2);
     });
 
     it('should not error with no rows', () => {
@@ -201,7 +201,7 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows.length).toEqual(defaultSheetData.length - 1);
+      expect(rows.length).toEqual(defaultSheetData.length);
     });
 
     it('should not error with rows with no data in them', () => {
@@ -216,7 +216,7 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows.length).toEqual(defaultSheetData.length - 1);
+      expect(rows.length).toEqual(defaultSheetData.length);
     });
   });
 });
