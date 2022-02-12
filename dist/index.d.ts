@@ -87,6 +87,18 @@ export declare class SheetQueryBuilder {
      */
     getHeadings(): string[];
     /**
+     * Get all cells from a query + where condition
+     * @returns {any[]}
+     */
+    getCells(): any[];
+    /**
+     * Get cells in sheet from current query + where condition and from specific header
+     * @param {string} key name of the column
+     * @param {Array<string>} [keys] optionnal names of columns use to select more columns than one
+     * @returns {any[]} all the colum cells from the query's rows
+     */
+    getCellsWithHeadings(key: string, headings: Array<string>): any[];
+    /**
      * Insert new rows into the spreadsheet
      * Arrays of objects like { Heading: Value }
      *

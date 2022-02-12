@@ -117,7 +117,7 @@ class SheetQueryBuilder {
       }
       const rowValues = [];
       const sheetValues = sheet.getDataRange().getValues();
-      const numCols = sheetValues[0].length;
+      const numCols = sheetValues[0] ? sheetValues[0].length : 0;
       const numRows = sheetValues.length;
       const headings = (this._sheetHeadings = sheetValues[zh] || []);
       for (let r = 0; r < numRows; r++) {
@@ -156,6 +156,48 @@ class SheetQueryBuilder {
     return this._sheetHeadings || [];
   }
   /**
+   * Get all cells from a query + where condition
+   * @returns {any[]}
+   */
+  getCells() {
+    const rows = this.getRows();
+    const cellArray = [];
+    rows.forEach((row) => {
+      cellArray.push(this._sheet.getRange(row.__meta.row, 1, 1, row.__meta.cols));
+    });
+    return cellArray;
+  }
+  /**
+   * Get cells in sheet from current query + where condition and from specific header
+   * @param {string} key name of the column
+   * @param {Array<string>} [keys] optionnal names of columns use to select more columns than one
+   * @returns {any[]} all the colum cells from the query's rows
+   */
+  getCellsWithHeadings(key, headings) {
+    let rows = this.getRows();
+    let indexColumn = 1;
+    const arrayCells = [];
+    for (const elem of this._sheetHeadings) {
+      if (elem == key) break;
+      indexColumn++;
+    }
+    rows.forEach((row) => {
+      arrayCells.push(this._sheet.getRange(row.__meta.row, indexColumn));
+    });
+    //If we got more thant one param
+    headings.forEach((col) => {
+      let indexColumn = 1;
+      for (const elem of this._sheetHeadings) {
+        if (elem == col) break;
+        indexColumn++;
+      }
+      rows.forEach((row) => {
+        arrayCells.push(this._sheet.getRange(row.__meta.row, indexColumn));
+      });
+    });
+    return arrayCells;
+  }
+  /**
    * Insert new rows into the spreadsheet
    * Arrays of objects like { Heading: Value }
    *
@@ -170,7 +212,7 @@ class SheetQueryBuilder {
         return;
       }
       const rowValues = headings.map((heading) => {
-        return heading && row[heading] ? row[heading] : '';
+        return (heading && row[heading]) || (heading && row[heading] === false) ? row[heading] : '';
       });
       sheet.appendRow(rowValues);
     });
