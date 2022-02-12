@@ -235,4 +235,25 @@ describe('SheetQuery', () => {
       expect(allNewCategory).toEqual(true);
     });
   });
+
+  describe('updateRow', () => {
+    it('should update single row using __meta info', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      const someRow = rows.find((row) => row.Name === 'Gasmart');
+
+      expect(someRow).not.toBeUndefined();
+
+      // Update row
+      query.updateRow(someRow, (row) => Object.assign(row, { Name: 'Gasmart Ultra' }));
+
+      const newRows = query.clearCache().getRows();
+      const someNewRow = rows.find((row) => row.Name === 'Gasmart Ultra');
+
+      expect(someNewRow).not.toBeUndefined();
+    });
+  });
 });

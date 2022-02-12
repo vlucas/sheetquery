@@ -101,23 +101,31 @@ export class SheetQueryBuilder {
   updateRows(updateFn: UpdateFn): SheetQueryBuilder {
     const rows = this.getRows();
 
-    rows.forEach((row: any) => {
-      const updateRowRange = this._sheet.getRange(row.__meta.row, 1, 1, row.__meta.cols);
-      const updatedRow: any = updateFn(row);
-      let arrayValues = [];
-
-      if (updatedRow && updatedRow.__meta) {
-        delete updatedRow.__meta;
-        arrayValues = Object.values(updatedRow);
-      } else {
-        delete row.__meta;
-        arrayValues = Object.values(row);
-      }
-
-      updateRowRange.setValues([arrayValues]);
-    });
+    for (let i = 0; i < rows.length; i++) {
+      this.updateRow(rows[i], updateFn);
+    }
 
     this.clearCache();
+    return this;
+  }
+
+  /**
+   * Update single row
+   */
+  updateRow(row: any, updateFn?: UpdateFn): SheetQueryBuilder {
+    const updateRowRange = this.getSheet().getRange(row.__meta.row, 1, 1, row.__meta.cols);
+    const updatedRow: any = updateFn ? updateFn(row) : false;
+    let arrayValues = [];
+
+    if (updatedRow && updatedRow.__meta) {
+      delete updatedRow.__meta;
+      arrayValues = Object.values(updatedRow);
+    } else {
+      delete row.__meta;
+      arrayValues = Object.values(row);
+    }
+
+    updateRowRange.setValues([arrayValues]);
     return this;
   }
 
@@ -127,6 +135,10 @@ export class SheetQueryBuilder {
    * @return {Sheet}
    */
   getSheet() {
+    if (!this.sheetName) {
+      throw new Error('SheetQuery: No sheet selected. Select sheet with .from(sheetName) method');
+    }
+
     if (!this._sheet) {
       this._sheet = this.activeSpreadsheet.getSheetByName(this.sheetName);
     }
