@@ -61,6 +61,10 @@ export declare class SheetQueryBuilder {
      */
     updateRows(updateFn: UpdateFn): SheetQueryBuilder;
     /**
+     * Update single row
+     */
+    updateRow(row: any, updateFn?: UpdateFn): SheetQueryBuilder;
+    /**
      * Get Sheet object that is referenced by the current query from() method
      *
      * @return {Sheet}

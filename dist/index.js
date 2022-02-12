@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SheetQueryBuilder = exports.sheetQuery = void 0;
 /**
  * Run new sheet query
  *
@@ -8,179 +5,187 @@ exports.SheetQueryBuilder = exports.sheetQuery = void 0;
  * @return {SheetQueryBuilder}
  */
 function sheetQuery(activeSpreadsheet) {
-    return new SheetQueryBuilder(activeSpreadsheet);
+  return new SheetQueryBuilder(activeSpreadsheet);
 }
-exports.sheetQuery = sheetQuery;
+
 /**
  * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
 class SheetQueryBuilder {
-    constructor(activeSpreadsheet) {
-        this.columnNames = [];
-        this.headingRow = 1;
-        this._sheetHeadings = [];
-        this.activeSpreadsheet = activeSpreadsheet || SpreadsheetApp.getActiveSpreadsheet();
+  constructor(activeSpreadsheet) {
+    this.columnNames = [];
+    this.headingRow = 1;
+    this._sheetHeadings = [];
+    this.activeSpreadsheet = activeSpreadsheet || SpreadsheetApp.getActiveSpreadsheet();
+  }
+  select(columnNames) {
+    this.columnNames = Array.isArray(columnNames) ? columnNames : [columnNames];
+    return this;
+  }
+  /**
+   * Name of spreadsheet to perform operations on
+   *
+   * @param {string} sheetName
+   * @param {number} headingRow
+   * @return {SheetQueryBuilder}
+   */
+  from(sheetName, headingRow = 1) {
+    this.sheetName = sheetName;
+    this.headingRow = headingRow;
+    return this;
+  }
+  /**
+   * Apply a filtering function on rows in a spreadsheet before performing an operation on them
+   *
+   * @param {Function} fn
+   * @return {SheetQueryBuilder}
+   */
+  where(fn) {
+    this.whereFn = fn;
+    return this;
+  }
+  /**
+   * Delete matched rows from spreadsheet
+   *
+   * @return {SheetQueryBuilder}
+   */
+  deleteRows() {
+    const rows = this.getRows();
+    let i = 0;
+    rows.forEach((row) => {
+      const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
+      deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
+      i++;
+    });
+    this.clearCache();
+    return this;
+  }
+  /**
+   * Update matched rows in spreadsheet with provided function
+   *
+   * @param {UpdateFn} updateFn
+   * @return {SheetQueryBuilder}
+   */
+  updateRows(updateFn) {
+    const rows = this.getRows();
+    for (let i = 0; i < rows.length; i++) {
+      this.updateRow(rows[i], updateFn);
     }
-    select(columnNames) {
-        this.columnNames = Array.isArray(columnNames) ? columnNames : [columnNames];
-        return this;
+    this.clearCache();
+    return this;
+  }
+  /**
+   * Update single row
+   */
+  updateRow(row, updateFn) {
+    const updateRowRange = this.getSheet().getRange(row.__meta.row, 1, 1, row.__meta.cols);
+    const updatedRow = updateFn ? updateFn(row) : false;
+    let arrayValues = [];
+    if (updatedRow && updatedRow.__meta) {
+      delete updatedRow.__meta;
+      arrayValues = Object.values(updatedRow);
+    } else {
+      delete row.__meta;
+      arrayValues = Object.values(row);
     }
-    /**
-     * Name of spreadsheet to perform operations on
-     *
-     * @param {string} sheetName
-     * @param {number} headingRow
-     * @return {SheetQueryBuilder}
-     */
-    from(sheetName, headingRow = 1) {
-        this.sheetName = sheetName;
-        this.headingRow = headingRow;
-        return this;
+    updateRowRange.setValues([arrayValues]);
+    return this;
+  }
+  /**
+   * Get Sheet object that is referenced by the current query from() method
+   *
+   * @return {Sheet}
+   */
+  getSheet() {
+    if (!this.sheetName) {
+      throw new Error('SheetQuery: No sheet selected. Select sheet with .from(sheetName) method');
     }
-    /**
-     * Apply a filtering function on rows in a spreadsheet before performing an operation on them
-     *
-     * @param {Function} fn
-     * @return {SheetQueryBuilder}
-     */
-    where(fn) {
-        this.whereFn = fn;
-        return this;
+    if (!this._sheet) {
+      this._sheet = this.activeSpreadsheet.getSheetByName(this.sheetName);
     }
-    /**
-     * Delete matched rows from spreadsheet
-     *
-     * @return {SheetQueryBuilder}
-     */
-    deleteRows() {
-        const rows = this.getRows();
-        let i = 0;
-        rows.forEach((row) => {
-            const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
-            deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
-            i++;
-        });
-        this.clearCache();
-        return this;
-    }
-    /**
-     * Update matched rows in spreadsheet with provided function
-     *
-     * @param {UpdateFn} updateFn
-     * @return {SheetQueryBuilder}
-     */
-    updateRows(updateFn) {
-        const rows = this.getRows();
-        rows.forEach((row) => {
-            const updateRowRange = this._sheet.getRange(row.__meta.row, 1, 1, row.__meta.cols);
-            const updatedRow = updateFn(row);
-            let arrayValues = [];
-            if (updatedRow && updatedRow.__meta) {
-                delete updatedRow.__meta;
-                arrayValues = Object.values(updatedRow);
-            }
-            else {
-                delete row.__meta;
-                arrayValues = Object.values(row);
-            }
-            updateRowRange.setValues([arrayValues]);
-        });
-        this.clearCache();
-        return this;
-    }
-    /**
-     * Get Sheet object that is referenced by the current query from() method
-     *
-     * @return {Sheet}
-     */
-    getSheet() {
-        if (!this._sheet) {
-            this._sheet = this.activeSpreadsheet.getSheetByName(this.sheetName);
+    return this._sheet;
+  }
+  /**
+   * Get values in sheet from current query + where condition
+   */
+  getValues() {
+    if (!this._sheetValues) {
+      const zh = this.headingRow - 1;
+      const sheet = this.getSheet();
+      if (!sheet) {
+        return [];
+      }
+      const rowValues = [];
+      const sheetValues = sheet.getDataRange().getValues();
+      const numCols = sheetValues[0].length;
+      const numRows = sheetValues.length;
+      const headings = (this._sheetHeadings = sheetValues[zh] || []);
+      for (let r = 0; r < numRows; r++) {
+        const obj = { __meta: { row: r + (this.headingRow + 1), cols: numCols } };
+        for (let c = 0; c < numCols; c++) {
+          // @ts-expect-error: Headings are set already above, so possibility of an error here is nil
+          obj[headings[c]] = sheetValues[r][c]; // @ts-ignore
         }
-        return this._sheet;
+        rowValues.push(obj);
+      }
+      this._sheetValues = rowValues;
     }
-    /**
-     * Get values in sheet from current query + where condition
-     */
-    getValues() {
-        if (!this._sheetValues) {
-            const zh = this.headingRow - 1;
-            const sheet = this.getSheet();
-            if (!sheet) {
-                return [];
-            }
-            const rowValues = [];
-            const sheetValues = sheet.getDataRange().getValues();
-            const numCols = sheetValues[0].length;
-            const numRows = sheetValues.length;
-            const headings = (this._sheetHeadings = sheetValues[zh] || []);
-            for (let r = 0; r < numRows; r++) {
-                const obj = { __meta: { row: r + (this.headingRow + 1), cols: numCols } };
-                for (let c = 0; c < numCols; c++) {
-                    // @ts-expect-error: Headings are set already above, so possibility of an error here is nil
-                    obj[headings[c]] = sheetValues[r][c]; // @ts-ignore
-                }
-                rowValues.push(obj);
-            }
-            this._sheetValues = rowValues;
-        }
-        return this._sheetValues;
+    return this._sheetValues;
+  }
+  /**
+   * Return matching rows from sheet query
+   *
+   * @return {RowObject[]}
+   */
+  getRows() {
+    const sheetValues = this.getValues();
+    return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
+  }
+  /**
+   * Get array of headings in current sheet from()
+   *
+   * @return {string[]}
+   */
+  getHeadings() {
+    if (!this._sheetHeadings || !this._sheetHeadings.length) {
+      const zh = this.headingRow - 1;
+      const sheet = this.getSheet();
+      const numCols = sheet.getLastColumn();
+      this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh];
     }
-    /**
-     * Return matching rows from sheet query
-     *
-     * @return {RowObject[]}
-     */
-    getRows() {
-        const sheetValues = this.getValues();
-        return this.whereFn ? sheetValues.filter(this.whereFn) : sheetValues;
-    }
-    /**
-     * Get array of headings in current sheet from()
-     *
-     * @return {string[]}
-     */
-    getHeadings() {
-        if (!this._sheetHeadings || !this._sheetHeadings.length) {
-            const zh = this.headingRow - 1;
-            const sheet = this.getSheet();
-            const numCols = sheet.getLastColumn();
-            this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh];
-        }
-        return this._sheetHeadings || [];
-    }
-    /**
-     * Insert new rows into the spreadsheet
-     * Arrays of objects like { Heading: Value }
-     *
-     * @param {DictObject[]} newRows - Array of row objects to insert
-     * @return {SheetQueryBuilder}
-     */
-    insertRows(newRows) {
-        const sheet = this.getSheet();
-        const headings = this.getHeadings();
-        newRows.forEach((row) => {
-            if (!row) {
-                return;
-            }
-            const rowValues = headings.map((heading) => {
-                return heading && row[heading] ? row[heading] : '';
-            });
-            sheet.appendRow(rowValues);
-        });
-        return this;
-    }
-    /**
-     * Clear cached values, headings, and flush all operations to sheet
-     *
-     * @return {SheetQueryBuilder}
-     */
-    clearCache() {
-        this._sheetValues = null;
-        this._sheetHeadings = [];
-        SpreadsheetApp.flush();
-        return this;
-    }
+    return this._sheetHeadings || [];
+  }
+  /**
+   * Insert new rows into the spreadsheet
+   * Arrays of objects like { Heading: Value }
+   *
+   * @param {DictObject[]} newRows - Array of row objects to insert
+   * @return {SheetQueryBuilder}
+   */
+  insertRows(newRows) {
+    const sheet = this.getSheet();
+    const headings = this.getHeadings();
+    newRows.forEach((row) => {
+      if (!row) {
+        return;
+      }
+      const rowValues = headings.map((heading) => {
+        return heading && row[heading] ? row[heading] : '';
+      });
+      sheet.appendRow(rowValues);
+    });
+    return this;
+  }
+  /**
+   * Clear cached values, headings, and flush all operations to sheet
+   *
+   * @return {SheetQueryBuilder}
+   */
+  clearCache() {
+    this._sheetValues = null;
+    this._sheetHeadings = [];
+    SpreadsheetApp.flush();
+    return this;
+  }
 }
-exports.SheetQueryBuilder = SheetQueryBuilder;
-//# sourceMappingURL=index.js.map
+
