@@ -1,10 +1,9 @@
 import { sheetQuery } from '../src/index';
 import type { DictObject } from '../src/index';
-import { SpreadsheetApp } from 'gasmask';
-import { Spreadsheet, Sheet } from 'gasmask/dist/SpreadsheetApp';
+import { SpreadsheetApp, Spreadsheet, Sheet } from 'gasmask/dist/SpreadsheetApp';
 
 // @ts-ignore
-//global.SpreadsheetApp = SpreadsheetApp;
+global.SpreadsheetApp = SpreadsheetApp;
 
 const SHEET_NAME = 'TestSheet';
 let ss = new Spreadsheet();
@@ -217,6 +216,23 @@ describe('SheetQuery', () => {
       const rows = query.getRows();
 
       expect(rows.length).toEqual(defaultSheetData.length);
+    });
+  });
+
+  describe('updateRows', () => {
+    it('should return first heading row by default', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const catName = 'TEST_CUSTOM_CATEGORY';
+      const query = sheetQuery(ss).from(SHEET_NAME);
+
+      // Update rows
+      query.updateRows((row) => Object.assign(row, { Category: catName }));
+
+      const rows = query.clearCache().getRows();
+      const allNewCategory = rows.some((row) => row.Category === catName);
+
+      expect(allNewCategory).toEqual(true);
     });
   });
 });
