@@ -1,6 +1,6 @@
 {
   "name": "sheetquery",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Query Builder/ORM for Google Sheets",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
