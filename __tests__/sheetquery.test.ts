@@ -46,7 +46,26 @@ describe('SheetQuery', () => {
         Category: 'Shops',
         Date: '2021-01-02',
         Name: 'Shopmart',
-        __meta: { cols: 4, row: 6 },
+        __meta: { cols: 4, row: 3 },
+      });
+    });
+  });
+
+  describe('getRows', () => {
+    it('should return correct __meta row positions', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      expect(Object.keys(rows[0])).toEqual(['__meta', 'Date', 'Amount', 'Name', 'Category']);
+      expect(rows.length).toBe(defaultSheetData.length);
+      expect(rows).toContainEqual({
+        Amount: 'Amount',
+        Category: 'Category',
+        Date: 'Date',
+        Name: 'Name',
+        __meta: { cols: 4, row: 0 },
       });
     });
   });
@@ -86,7 +105,7 @@ describe('SheetQuery', () => {
         Category: 'Shops',
         Date: '2021-01-02',
         Name: 'Shopmart',
-        __meta: { cols: 4, row: 4 },
+        __meta: { cols: 4, row: 2 },
       });
     });
 

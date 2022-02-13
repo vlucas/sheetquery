@@ -165,7 +165,7 @@ export class SheetQueryBuilder {
       const headings = (this._sheetHeadings = sheetValues[zh] || []);
 
       for (let r = 0; r < numRows; r++) {
-        const obj = { __meta: { row: r + (this.headingRow + 1), cols: numCols } };
+        const obj = { __meta: { row: r, cols: numCols } };
 
         for (let c = 0; c < numCols; c++) {
           // @ts-expect-error: Headings are set already above, so possibility of an error here is nil
