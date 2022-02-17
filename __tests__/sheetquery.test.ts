@@ -287,5 +287,32 @@ describe('SheetQuery', () => {
 
       expect(someNewRow).not.toBeUndefined();
     });
+
+    it('should update without error even with mismatching column counts', () => {
+      const customSheetData = [
+        ['Date', 'Amount', 'Name', 'Category'],
+        ['2021-01-01', 5.32, 'Kwickiemart', 'Shops'],
+        ['2021-01-02', 72.48, 'Shopmart', 'Shops'],
+        ['2021-01-03', 1.97, 'Kwickiemart', 'Shops'],
+        ['2021-01-03', 43.87, 'Gasmart', 'Gas', '', '', 'something here'],
+        ['2021-01-04', 824.93, 'Wholepaycheck', 'Groceries'],
+      ];
+      setupSpreadsheet(customSheetData);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      const someRow = rows.find((row) => row.Name === 'Gasmart');
+
+      expect(someRow).not.toBeUndefined();
+
+      // Update row
+      query.updateRow(someRow, (row) => Object.assign(row, { Name: 'Gasmart Ultra' }));
+
+      const newRows = query.clearCache().getRows();
+      const someNewRow = rows.find((row) => row.Name === 'Gasmart Ultra');
+
+      expect(someNewRow).not.toBeUndefined();
+    });
   });
 });

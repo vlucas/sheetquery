@@ -17,7 +17,7 @@ export type RowObject = {
   __meta: { row: number; cols: number };
 };
 export type WhereFn = (row: RowObject) => boolean;
-export type UpdateFn = (row: RowObject) => RowObject | undefined;
+export type UpdateFn = (row: RowObject) => RowObject;
 
 // SpreadsheetApp comes from Google Apps Script
 declare var SpreadsheetApp: any;
@@ -69,63 +69,6 @@ export class SheetQueryBuilder {
   where(fn: WhereFn): SheetQueryBuilder {
     this.whereFn = fn;
 
-    return this;
-  }
-
-  /**
-   * Delete matched rows from spreadsheet
-   *
-   * @return {SheetQueryBuilder}
-   */
-  deleteRows(): SheetQueryBuilder {
-    const rows = this.getRows();
-    let i = 0;
-
-    rows.forEach((row: RowObject) => {
-      const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
-
-      deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
-      i++;
-    });
-
-    this.clearCache();
-    return this;
-  }
-
-  /**
-   * Update matched rows in spreadsheet with provided function
-   *
-   * @param {UpdateFn} updateFn
-   * @return {SheetQueryBuilder}
-   */
-  updateRows(updateFn: UpdateFn): SheetQueryBuilder {
-    const rows = this.getRows();
-
-    for (let i = 0; i < rows.length; i++) {
-      this.updateRow(rows[i], updateFn);
-    }
-
-    this.clearCache();
-    return this;
-  }
-
-  /**
-   * Update single row
-   */
-  updateRow(row: any, updateFn?: UpdateFn): SheetQueryBuilder {
-    const updateRowRange = this.getSheet().getRange(row.__meta.row, 1, 1, row.__meta.cols);
-    const updatedRow: any = updateFn ? updateFn(row) : false;
-    let arrayValues = [];
-
-    if (updatedRow && updatedRow.__meta) {
-      delete updatedRow.__meta;
-      arrayValues = Object.values(updatedRow);
-    } else {
-      delete row.__meta;
-      arrayValues = Object.values(row);
-    }
-
-    updateRowRange.setValues([arrayValues]);
     return this;
   }
 
@@ -278,6 +221,72 @@ export class SheetQueryBuilder {
       sheet.appendRow(rowValues);
     });
 
+    return this;
+  }
+
+  /**
+   * Delete matched rows from spreadsheet
+   *
+   * @return {SheetQueryBuilder}
+   */
+  deleteRows(): SheetQueryBuilder {
+    const rows = this.getRows();
+    let i = 0;
+
+    rows.forEach((row: RowObject) => {
+      const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
+
+      deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
+      i++;
+    });
+
+    this.clearCache();
+    return this;
+  }
+
+  /**
+   * Update matched rows in spreadsheet with provided function
+   *
+   * @param {UpdateFn} updateFn
+   * @return {SheetQueryBuilder}
+   */
+  updateRows(updateFn: UpdateFn): SheetQueryBuilder {
+    const rows = this.getRows();
+
+    for (let i = 0; i < rows.length; i++) {
+      this.updateRow(rows[i], updateFn);
+    }
+
+    this.clearCache();
+    return this;
+  }
+
+  /**
+   * Update single row
+   */
+  updateRow(row: any, updateFn: UpdateFn): SheetQueryBuilder {
+    const updatedRow: any = updateFn(row) || row;
+    const rowMeta = updatedRow.__meta;
+    const headings = this.getHeadings();
+
+    delete updatedRow.__meta;
+
+    // Put new array data in order of headings in sheet
+    const arrayValues = headings.map((heading) => {
+      return (heading && updatedRow[heading]) || (heading && updatedRow[heading] === false)
+        ? updatedRow[heading]
+        : '';
+    });
+    const maxCols = Math.max(rowMeta.cols, arrayValues.length);
+    const updateRowRange = this.getSheet().getRange(rowMeta.row, 1, 1, maxCols);
+    const rangeData = updateRowRange.getValues()[0] || [];
+
+    // Map over old data in same index order to update it and ensure array length always matches
+    const newValues = rangeData.map((value: string, index: number) => {
+      return arrayValues[index] || value;
+    });
+
+    updateRowRange.setValues([newValues]);
     return this;
   }
 

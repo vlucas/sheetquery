@@ -45,53 +45,6 @@ class SheetQueryBuilder {
     return this;
   }
   /**
-   * Delete matched rows from spreadsheet
-   *
-   * @return {SheetQueryBuilder}
-   */
-  deleteRows() {
-    const rows = this.getRows();
-    let i = 0;
-    rows.forEach((row) => {
-      const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
-      deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
-      i++;
-    });
-    this.clearCache();
-    return this;
-  }
-  /**
-   * Update matched rows in spreadsheet with provided function
-   *
-   * @param {UpdateFn} updateFn
-   * @return {SheetQueryBuilder}
-   */
-  updateRows(updateFn) {
-    const rows = this.getRows();
-    for (let i = 0; i < rows.length; i++) {
-      this.updateRow(rows[i], updateFn);
-    }
-    this.clearCache();
-    return this;
-  }
-  /**
-   * Update single row
-   */
-  updateRow(row, updateFn) {
-    const updateRowRange = this.getSheet().getRange(row.__meta.row, 1, 1, row.__meta.cols);
-    const updatedRow = updateFn ? updateFn(row) : false;
-    let arrayValues = [];
-    if (updatedRow && updatedRow.__meta) {
-      delete updatedRow.__meta;
-      arrayValues = Object.values(updatedRow);
-    } else {
-      delete row.__meta;
-      arrayValues = Object.values(row);
-    }
-    updateRowRange.setValues([arrayValues]);
-    return this;
-  }
-  /**
    * Get Sheet object that is referenced by the current query from() method
    *
    * @return {Sheet}
@@ -216,6 +169,60 @@ class SheetQueryBuilder {
       });
       sheet.appendRow(rowValues);
     });
+    return this;
+  }
+  /**
+   * Delete matched rows from spreadsheet
+   *
+   * @return {SheetQueryBuilder}
+   */
+  deleteRows() {
+    const rows = this.getRows();
+    let i = 0;
+    rows.forEach((row) => {
+      const deleteRowRange = this._sheet.getRange(row.__meta.row - i, 1, 1, row.__meta.cols);
+      deleteRowRange.deleteCells(SpreadsheetApp.Dimension.ROWS);
+      i++;
+    });
+    this.clearCache();
+    return this;
+  }
+  /**
+   * Update matched rows in spreadsheet with provided function
+   *
+   * @param {UpdateFn} updateFn
+   * @return {SheetQueryBuilder}
+   */
+  updateRows(updateFn) {
+    const rows = this.getRows();
+    for (let i = 0; i < rows.length; i++) {
+      this.updateRow(rows[i], updateFn);
+    }
+    this.clearCache();
+    return this;
+  }
+  /**
+   * Update single row
+   */
+  updateRow(row, updateFn) {
+    const updatedRow = updateFn(row) || row;
+    const rowMeta = updatedRow.__meta;
+    const headings = this.getHeadings();
+    delete updatedRow.__meta;
+    // Put new array data in order of headings in sheet
+    const arrayValues = headings.map((heading) => {
+      return (heading && updatedRow[heading]) || (heading && updatedRow[heading] === false)
+        ? updatedRow[heading]
+        : '';
+    });
+    const maxCols = Math.max(rowMeta.cols, arrayValues.length);
+    const updateRowRange = this.getSheet().getRange(rowMeta.row, 1, 1, maxCols);
+    const rangeData = updateRowRange.getValues()[0] || [];
+    // Map over old data in same index order to update it and ensure array length always matches
+    const newValues = rangeData.map((value, index) => {
+      return arrayValues[index] || value;
+    });
+    updateRowRange.setValues([newValues]);
     return this;
   }
   /**

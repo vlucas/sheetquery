@@ -17,7 +17,7 @@ export declare type RowObject = {
     };
 };
 export declare type WhereFn = (row: RowObject) => boolean;
-export declare type UpdateFn = (row: RowObject) => RowObject | undefined;
+export declare type UpdateFn = (row: RowObject) => RowObject;
 /**
  * SheetQueryBuilder class - Kind of an ORM for Google Sheets
  */
@@ -47,23 +47,6 @@ export declare class SheetQueryBuilder {
      * @return {SheetQueryBuilder}
      */
     where(fn: WhereFn): SheetQueryBuilder;
-    /**
-     * Delete matched rows from spreadsheet
-     *
-     * @return {SheetQueryBuilder}
-     */
-    deleteRows(): SheetQueryBuilder;
-    /**
-     * Update matched rows in spreadsheet with provided function
-     *
-     * @param {UpdateFn} updateFn
-     * @return {SheetQueryBuilder}
-     */
-    updateRows(updateFn: UpdateFn): SheetQueryBuilder;
-    /**
-     * Update single row
-     */
-    updateRow(row: any, updateFn?: UpdateFn): SheetQueryBuilder;
     /**
      * Get Sheet object that is referenced by the current query from() method
      *
@@ -106,6 +89,23 @@ export declare class SheetQueryBuilder {
      * @return {SheetQueryBuilder}
      */
     insertRows(newRows: DictObject[]): SheetQueryBuilder;
+    /**
+     * Delete matched rows from spreadsheet
+     *
+     * @return {SheetQueryBuilder}
+     */
+    deleteRows(): SheetQueryBuilder;
+    /**
+     * Update matched rows in spreadsheet with provided function
+     *
+     * @param {UpdateFn} updateFn
+     * @return {SheetQueryBuilder}
+     */
+    updateRows(updateFn: UpdateFn): SheetQueryBuilder;
+    /**
+     * Update single row
+     */
+    updateRow(row: any, updateFn: UpdateFn): SheetQueryBuilder;
     /**
      * Clear cached values, headings, and flush all operations to sheet
      *
