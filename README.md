@@ -12,6 +12,13 @@ Script ID: `1pbpOJxDDHVeVr6WQmR5TZKSqTsW4qwdIlcVKIM6UKYvswkivwHpPnHaO`
 
 This is probably the easiest way to use SheetQuery and ensure you are always using the latest version.
 
+NOTE: If you use it as a library, you must use the library name first, as all libraries are automatically namespaced:
+```
+SheetQuery.sheetQuery() // Using it as a library
+
+sheetQuery() // Using it as a local file
+```
+
 ## Manual Install Into Your Own Google Apps Script
 
 If you don't want to use a Library file and need the script to be local within your own project, Create a new file named
