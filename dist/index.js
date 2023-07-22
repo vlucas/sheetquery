@@ -165,7 +165,7 @@ class SheetQueryBuilder {
         return;
       }
       const rowValues = headings.map((heading) => {
-        return (heading && row[heading]) || (heading && row[heading] === false) ? row[heading] : '';
+        return (heading && row[heading]) || (Boolean(heading && row[heading]) === false) ? row[heading] : '';
       });
       sheet.appendRow(rowValues);
     });
@@ -220,7 +220,7 @@ class SheetQueryBuilder {
     const rangeData = updateRowRange.getValues()[0] || [];
     // Map over old data in same index order to update it and ensure array length always matches
     const newValues = rangeData.map((value, index) => {
-      return arrayValues[index] || value;
+      return arrayValues[index] ?? value;
     });
     updateRowRange.setValues([newValues]);
     return this;
