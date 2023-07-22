@@ -211,7 +211,7 @@ class SheetQueryBuilder {
     delete updatedRow.__meta;
     // Put new array data in order of headings in sheet
     const arrayValues = headings.map((heading) => {
-      return (heading && updatedRow[heading]) || (heading && updatedRow[heading] === false)
+      return (heading && updatedRow[heading]) || (Boolean(heading && updatedRow[heading]) === false)
         ? updatedRow[heading]
         : '';
     });
