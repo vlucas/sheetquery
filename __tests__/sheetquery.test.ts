@@ -90,6 +90,19 @@ describe('SheetQuery', () => {
 
       expect(headings).toEqual(['Date', 'Amount', 'Name', 'Category']);
     });
+
+    it('should remove empty columns and trim extra spaces', () => {
+      const sheetData = [
+        ['Date', 'Amount', 'Name', 'Category', ' ', ' Extra ', ''],
+        ['2021-01-01', 5.32, 'Kwickiemart', 'Shops', '', ''],
+      ];
+      setupSpreadsheet(sheetData);
+
+      const query = sheetQuery(ss).from(SHEET_NAME).clearCache();
+      const headings = query.getHeadings();
+
+      expect(headings).toEqual(['Date', 'Amount', 'Name', 'Category', 'Extra']);
+    });
   });
 
   describe('getRows', () => {

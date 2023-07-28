@@ -145,7 +145,10 @@ export class SheetQueryBuilder {
       const sheet = this.getSheet();
       const numCols = sheet.getLastColumn();
 
-      this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh];
+      this._sheetHeadings = sheet.getSheetValues(1, 1, this.headingRow, numCols)[zh] || [];
+      this._sheetHeadings = this._sheetHeadings
+        .map((s) => (typeof s === 'string' ? s.trim() : ''))
+        .filter(Boolean);
     }
 
     return this._sheetHeadings || [];
@@ -213,7 +216,7 @@ export class SheetQueryBuilder {
         return;
       }
 
-      const rowValues = headings.filter(Boolean).map((heading) => {
+      const rowValues = headings.map((heading) => {
         const val = row[heading];
         return val === undefined || val === null || val === false ? '' : val;
       });
