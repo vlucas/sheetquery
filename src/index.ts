@@ -1,4 +1,3 @@
-import type { Spreadsheet, Sheet } from 'gasmask/src/SpreadsheetApp';
 export type { Spreadsheet, Sheet } from 'gasmask/src/SpreadsheetApp';
 
 /**
@@ -214,8 +213,9 @@ export class SheetQueryBuilder {
         return;
       }
 
-      const rowValues = headings.map((heading) => {
-        return (heading && row[heading]) || (heading && row[heading] === false) ? row[heading] : '';
+      const rowValues = headings.filter(Boolean).map((heading) => {
+        const val = row[heading];
+        return val === undefined || val === null || val === false ? '' : val;
       });
 
       sheet.appendRow(rowValues);
@@ -273,9 +273,8 @@ export class SheetQueryBuilder {
 
     // Put new array data in order of headings in sheet
     const arrayValues = headings.map((heading) => {
-      return (heading && updatedRow[heading]) || (heading && updatedRow[heading] === false)
-        ? updatedRow[heading]
-        : '';
+      const val = updatedRow[heading];
+      return val === undefined || val === null || val === false ? '' : val;
     });
     const maxCols = Math.max(rowMeta.cols, arrayValues.length);
     const updateRowRange = this.getSheet().getRange(rowMeta.row, 1, 1, maxCols);
@@ -283,7 +282,8 @@ export class SheetQueryBuilder {
 
     // Map over old data in same index order to update it and ensure array length always matches
     const newValues = rangeData.map((value: string, index: number) => {
-      return arrayValues[index] || value;
+      const val = arrayValues[index];
+      return val === undefined || val === null || val === false ? '' : val;
     });
 
     updateRowRange.setValues([newValues]);

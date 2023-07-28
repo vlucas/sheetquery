@@ -164,6 +164,36 @@ describe('SheetQuery', () => {
       expect(testRows[1].Date).toEqual('');
     });
 
+    it('Should insert rows with 0 numberic values', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const newRows = [
+        {
+          Amount: 0,
+          Name: 'BigBox, inc. __INSERT_TEST_Z__',
+          Date: '2023-07-28',
+        },
+        {
+          Amount: 0,
+          Name: 'Fast-n-greasy Food, Inc. __INSERT_TEST_Z__',
+          Date: '2023-07-28',
+        },
+      ];
+
+      // Insert rows
+      sheetQuery(ss).from(SHEET_NAME).insertRows(newRows);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      const testRows = rows.filter((row) => row.Name.includes('__INSERT_TEST_Z__'));
+
+      expect(testRows[0].Name).toEqual(newRows[0].Name);
+      expect(testRows[0].Amount).toEqual(newRows[0].Amount);
+      expect(testRows[1].Name).toEqual(newRows[1].Name);
+      expect(testRows[1].Amount).toEqual(newRows[1].Amount);
+    });
+
     it('should ignore extra columns not present in spreadsheet during insert', () => {
       setupSpreadsheet(defaultSheetData);
 
@@ -286,6 +316,26 @@ describe('SheetQuery', () => {
       const someNewRow = rows.find((row) => row.Name === 'Gasmart Ultra');
 
       expect(someNewRow).not.toBeUndefined();
+    });
+
+    it('should update single row with numeric 0 value', () => {
+      setupSpreadsheet(defaultSheetData);
+
+      const query = sheetQuery(ss).from(SHEET_NAME);
+      const rows = query.getRows();
+
+      const someRow = rows.find((row) => row.Name === 'Gasmart');
+
+      expect(someRow).not.toBeUndefined();
+
+      // Update row
+      query.updateRow(someRow, (row) => Object.assign(row, { Name: 'Gasmart Ultra', Amount: 0 }));
+
+      const newRows = query.clearCache().getRows();
+      const someNewRow = rows.find((row) => row.Name === 'Gasmart Ultra');
+
+      expect(someNewRow).not.toBeUndefined();
+      expect(someNewRow?.Amount).toEqual(0);
     });
 
     it('should update without error even with mismatching column counts', () => {
