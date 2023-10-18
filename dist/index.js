@@ -191,6 +191,33 @@ class SheetQueryBuilder {
     this.clearCache();
     return this;
   }
+    patchRows(updateFn) {
+    const rows = this.getRows();
+    for (let i = 0; i < rows.length; i++) {
+      this.patchRow(rows[i], updateFn);
+    }
+    this.clearCache();
+    return this;
+  }
+  /**
+   * Patch single row
+   */
+  patchRow(row, updateFn) {
+    const rowMeta = row.__meta;
+    delete row.__meta;
+    const sourceRow = {...row}; // shallow copy
+    const updatedRow = updateFn(row) || row;    
+    const headings = this.getHeadings();
+    // Write those cells only where values were changed
+    headings.forEach((heading, col) => {
+      const newValue = updatedRow[heading];
+      if (newValue !== sourceRow[heading]){
+        const updateRowCell = this.getSheet().getRange(rowMeta.row, col + 1)
+        updateRowCell.setValues([[newValue]]);
+      }      
+    });
+    return this;
+  }
   /**
    * Update matched rows in spreadsheet with provided function
    *
