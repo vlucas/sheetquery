@@ -261,7 +261,7 @@ describe('SheetQuery', () => {
       const query = sheetQuery(ss).from(SHEET_NAME);
       const rows = query.getRows();
 
-      expect(rows.length).toEqual(2);
+      expect(rows.length).toEqual(0);
     });
 
     it('should not error with no rows', () => {

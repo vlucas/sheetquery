@@ -221,7 +221,10 @@ export class SheetQueryBuilder {
         return val === undefined || val === null || val === false ? '' : val;
       });
 
-      sheet.appendRow(rowValues);
+      // appendRow() will throw if array is empty, so we check to prevent that
+      if (rowValues && rowValues.length !== 0) {
+        sheet.appendRow(rowValues);
+      }
     });
 
     return this;
